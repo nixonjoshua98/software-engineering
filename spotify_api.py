@@ -1,6 +1,5 @@
 from api_base_class import APIBaseClass
 
-
 class SpotifyAPI(APIBaseClass):
     """ Derived class which will interface with the Spotify API """
     
