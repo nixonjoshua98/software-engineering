@@ -4,20 +4,23 @@ import requests
 # NewsAPI URL to fire a GET request to
 URL = "https://newsapi.org/v2/top-headlines"
 # Params for retrieving top headlines from GB and our API Key (API Key must be present otherwise the API request will fail (401))
+
 # EndPoints
 # 'top-headlines' returns the top headlines based on the passed query parameters
 # 'everything' returns everything based on the the passed query parameters
 # 'sources' returns all articles from a given source based on the passed query parameters
+
 # Paramters
-# 'q'
-# 'from - to'
-# 'sortBy'
-# 'sources'
+# 'q' - keyword parameter
+# 'from - to'- data range parameter
+# 'sortBy' 
+# 'sources' 
 # 'country'
-# 'domains'
+# 'domains' - url parameter
 # 'category'
 
 
+PARAMS = {"country": "gb", "apiKey": "2b6e854826644184a33debfa683e698a"}
 
 # Initiate our GET request to NewsAPI
 request = requests.get(url = URL, params= PARAMS)
