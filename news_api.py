@@ -2,6 +2,9 @@ from api_base_class import APIBaseClass
 
 # Import Requests library for HTTP GET requests
 import requests
+import random
+
+from rake_nltk import Rake
 
 class NewsAPI(APIBaseClass):
     """ Derived class which will interface with the News API """
@@ -12,6 +15,13 @@ class NewsAPI(APIBaseClass):
         super().__init__(_id, secret)  # Call the base class initiliser
 
         self.params = {"country": "gb", "apiKey": self.id}
+
+    def send_request(self):
+        request = requests.get(url=self.URL, params=self.params)
+        
+        request.raise_for_status()
+
+        return request
         
     def get_headlines(self) -> list:
         """
@@ -20,14 +30,18 @@ class NewsAPI(APIBaseClass):
         Returns:
             Returns a list containing todays headlines.
         """
-        
-        request = requests.get(url=self.URL, params=self.params)
-        
-        request.raise_for_status()
 
-        # Retrieve JSON data from the response and read the articles key in the dictionary response
-        # Articles is a unicode array so python formats it as u'articles', without this u the key will not be found
-        articles = request.json()[u'articles']
-        
-        # Articles is an array of news objects
-        return [h["title"] for h in articles]
+        r = Rake(max_length=1)
+
+        request = self.send_request()
+
+        words = []
+
+        for h in request.json()[u'articles']:
+            r.extract_keywords_from_text(h["title"])
+
+            words.extend(r.get_ranked_phrases())
+
+        random.shuffle(words)
+
+        return words[0:1]

@@ -1,46 +1,83 @@
-from api_base_class import APIBaseClass
-
 import spotipy
+import subprocess
+import os
+import dataclasses
 import spotipy.util as util
 
 from spotipy.oauth2 import SpotifyClientCredentials
+from json.decoder import JSONDecodeError
 
-username="nixon.anita"
+from news_api import NewsAPI
 
-class SpotifyAPI(APIBaseClass):
-    """ Derived class which will interface with the Spotify API """
+@dataclasses.dataclass
+class Track:
+    artists: list
+    album: str
+    name: str
 
-    URL = "https://api.spotify.com/v1/recommendations"
+class SpotifyAPI(object):
+    SCOPE = "user-read-private user-read-playback-state user-modify-playback-state"
     
-    def __init__(self, _id, secret=None):
-        super().__init__(_id, secret)  # Call the base class initiliser
+    CLIENT_ID = "977f90e4dc0b4afb98bcab0b6fd466bf"
+    CLIENT_SECRET = "aa12f933b7ef4475bba30d0009977816"
 
-        self.credentials = SpotifyClientCredentials(self.id, self.secret)
+    URI = "http://localhost:8888/callback"
 
-    def get_songs(self, numSongs: int) -> list:
-        """
-        Send a get request to the Spotify API.
+    def __init__(self, username: str):
+        self.username = username
+        self.spotifyObject = None
 
-        Args:
-            numSongs: Number of songs wanted.
+        os.environ["SPOTIPY_CLIENT_ID"] = self.CLIENT_ID
+        os.environ["SPOTIPY_CLIENT_SECRET"] = self.CLIENT_SECRET
+        os.environ["SPOTIPY_REDIRECT_URI"] = self.URI
 
-        Returns:
-            Returns a list containing song titles.
-        """
-
-        #token = util.prompt_for_user_token(username, client_id=self.id, client_secret=self.secret, redirect_uri="http://localhost:8888/callback")            
+        token = self.get_permission()
         
-        spotify = spotipy.Spotify(client_credentials_manager=self.credentials)
+        self.create_object(token)
+
+    def get_permission(self) -> str:
+        try:
+            token = util.prompt_for_user_token(self.username, self.SCOPE)
+            
+        except (AttributeError, JSONDecodeError):
+            os.remove(f".cache-{self.username}")
+
+            token = util.prompt_for_user_token(self.username, self.SCOPE)
+
+        return token
+
+    def create_object(self, token: str):
+        self.spotifyObject = spotipy.Spotify(auth=token)
+
+    def search_for_tracks(self, words: list) -> list:
+        results = self.spotifyObject.search(f"{','.join(words)}")
+
+        tracks = []
         
-        results = spotify.search(q="artist: Eminem", type='artist')
+        for track in results["tracks"]["items"]:
+            album_name = track["album"]["name"]
+            track_name = track["name"]
+            artists = [a["name"] for a in track["album"]["artists"]]
 
-        print(results)
+            tracks.append(Track(artists, album_name, track_name))
 
-spotify = SpotifyAPI(
-    "977f90e4dc0b4afb98bcab0b6fd466bf",
-    "aa12f933b7ef4475bba30d0009977816"
-    )
+        return tracks
 
-songs = spotify.get_songs(5)
+key_words = NewsAPI("2b6e854826644184a33debfa683e698a").get_headlines()
+spotify_api = SpotifyAPI(" ")
 
-print(songs)
+print("Keywords:", key_words)
+
+tracks = spotify_api.search_for_tracks(key_words)
+
+for i in tracks:
+    print(i)
+
+
+
+
+
+
+
+
+    
