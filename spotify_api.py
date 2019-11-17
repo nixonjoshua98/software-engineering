@@ -1,22 +1,26 @@
 import spotipy
-import subprocess
+
+from spotipy import util
+from spotipy.oauth2 import SpotifyClientCredentials
+
 import os
 import dataclasses
-import spotipy.util as util
 
-from spotipy.oauth2 import SpotifyClientCredentials
 from json.decoder import JSONDecodeError
-
-from news_api import NewsAPI
 
 @dataclasses.dataclass
 class Track:
+    """
+    Storage class for tracks which will be returned from the SpotifyAPI
+    """
+    
     artists: list
     album: str
     name: str
 
-class SpotifyAPI(object):
-    SCOPE = "user-read-private user-read-playback-state user-modify-playback-state"
+class SpotifyAPI:
+    #SCOPE = "user-read-private user-read-playback-state user-modify-playback-state"
+    SCOPE = " "
     
     CLIENT_ID = "977f90e4dc0b4afb98bcab0b6fd466bf"
     CLIENT_SECRET = "aa12f933b7ef4475bba30d0009977816"
@@ -31,22 +35,24 @@ class SpotifyAPI(object):
         os.environ["SPOTIPY_CLIENT_SECRET"] = self.CLIENT_SECRET
         os.environ["SPOTIPY_REDIRECT_URI"] = self.URI
 
-        token = self.get_permission()
+        token = self.__get_permission()
         
-        self.create_object(token)
+        self.__create_object(token)
 
-    def get_permission(self) -> str:
+    # Private method
+    def __get_permission(self) -> str:
         try:
             token = util.prompt_for_user_token(self.username, self.SCOPE)
             
-        except (AttributeError, JSONDecodeError):
+        except (AttributeError, JSONDecodeError) as e:
             os.remove(f".cache-{self.username}")
 
             token = util.prompt_for_user_token(self.username, self.SCOPE)
 
         return token
 
-    def create_object(self, token: str):
+    # Private method
+    def __create_object(self, token: str):
         self.spotifyObject = spotipy.Spotify(auth=token)
 
     def search_for_tracks(self, words: list) -> list:
@@ -62,17 +68,6 @@ class SpotifyAPI(object):
             tracks.append(Track(artists, album_name, track_name))
 
         return tracks
-
-key_words = NewsAPI("2b6e854826644184a33debfa683e698a").get_headlines()
-spotify_api = SpotifyAPI(" ")
-
-print("Keywords:", key_words)
-
-tracks = spotify_api.search_for_tracks(key_words)
-
-for i in tracks:
-    print(i)
-
 
 
 

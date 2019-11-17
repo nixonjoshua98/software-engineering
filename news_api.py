@@ -1,29 +1,36 @@
-from api_base_class import APIBaseClass
-
-# Import Requests library for HTTP GET requests
-import requests
+import requests # Import Requests library for HTTP GET requests
 import random
 
-from rake_nltk import Rake
+from rake_nltk import Rake # Keyword extraction module
 
-class NewsAPI(APIBaseClass):
-    """ Derived class which will interface with the News API """
+class NewsAPI:
+    URL = "https://newsapi.org/v2/top-headlines" # Target URl for the news API.
 
-    URL = "https://newsapi.org/v2/top-headlines" # NewsAPI URL to fire a GET request to
+    ID = "2b6e854826644184a33debfa683e698a"
     
-    def __init__(self, _id: str, secret=None):
-        super().__init__(_id, secret)  # Call the base class initiliser
+    def __init__(self):
+        self.params = {"country": "gb", "apiKey": self.ID}
 
-        self.params = {"country": "gb", "apiKey": self.id}
+        self.rake = Rake(max_length=1)
 
-    def send_request(self):
-        request = requests.get(url=self.URL, params=self.params)
+    # Private method
+    def __send_request(self):
+        """
+        Send a get request to the News API.
         
+        Returns:
+            Returns the request object.
+        """
+                
+        request = requests.get(url=self.URL, params=self.params)
+
+        # Throw an error if the request was denied.
         request.raise_for_status()
 
         return request
-        
-    def get_headlines(self) -> list:
+
+    # Private method
+    def __get_headlines(self):
         """
         Send a get request to the News API.
         
@@ -31,17 +38,35 @@ class NewsAPI(APIBaseClass):
             Returns a list containing todays headlines.
         """
 
-        r = Rake(max_length=1)
+        request = self.__send_request()
 
-        request = self.send_request()
+        return [h["title"] for h in request.json()[u'articles']]
+
+    def get_keywords(self, numWords: int) -> list:
+        """
+        Extracts keywords from headlines
+
+        Params:
+            numWords <int>: maximum number of keywords which will be returned
+        
+        Returns:
+            Returns a list of keywords based on the current headlines.
+        """
+                
+        headlines = self.__get_headlines()
 
         words = []
 
-        for h in request.json()[u'articles']:
-            r.extract_keywords_from_text(h["title"])
+        # Extract the keywords using the Rake module.
+        for h in headlines:
+            self.rake.extract_keywords_from_text(h)
 
-            words.extend(r.get_ranked_phrases())
+            words.extend(self.rake.get_ranked_phrases())
 
-        random.shuffle(words)
+        random.shuffle(words) # Shuffle the list so the keywords will be randomised.
 
-        return words[0:1]
+        return words[0:numWords]
+
+        
+
+        
