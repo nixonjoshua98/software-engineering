@@ -7,7 +7,7 @@ class NewsAPI(APIBaseClass):
     """ Derived class which will interface with the News API """
 
     URL = "https://newsapi.org/v2/top-headlines" # NewsAPI URL to fire a GET request to
-        
+    
     def __init__(self, _id: str, secret=None):
         super().__init__(_id, secret)  # Call the base class initiliser
 
@@ -31,9 +31,3 @@ class NewsAPI(APIBaseClass):
         
         # Articles is an array of news objects
         return [h["title"] for h in articles]
-
-news = NewsAPI("2b6e854826644184a33debfa683e698a")
-
-headlines = news.get_headlines()
-
-print(headlines)

@@ -5,7 +5,7 @@ import spotipy.util as util
 
 from spotipy.oauth2 import SpotifyClientCredentials
 
-# https://www.youtube.com/watch?v=vipVEWe86Lg
+username="nixon.anita"
 
 class SpotifyAPI(APIBaseClass):
     """ Derived class which will interface with the Spotify API """
@@ -28,15 +28,17 @@ class SpotifyAPI(APIBaseClass):
             Returns a list containing song titles.
         """
 
-        # token = util.prompt_for_user_token(username)            
+        #token = util.prompt_for_user_token(username, client_id=self.id, client_secret=self.secret, redirect_uri="http://localhost:8888/callback")            
         
-        spotify = spotipy.Spotify(self.credentials)
+        spotify = spotipy.Spotify(client_credentials_manager=self.credentials)
         
         results = spotify.search(q="artist: Eminem", type='artist')
 
+        print(results)
+
 spotify = SpotifyAPI(
-    "8f4d7a6dd25f4f84b48082e7eeba73d7",
-    "4ebb0f15af7a4dd68b604fb66635131f"
+    "977f90e4dc0b4afb98bcab0b6fd466bf",
+    "aa12f933b7ef4475bba30d0009977816"
     )
 
 songs = spotify.get_songs(5)
