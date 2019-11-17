@@ -1,6 +1,7 @@
 from api_base_class import APIBaseClass
 
-import requests # Import Requests library for HTTP GET requests
+# Import Requests library for HTTP GET requests
+import requests
 
 class NewsAPI(APIBaseClass):
     """ Derived class which will interface with the News API """
@@ -15,6 +16,7 @@ class NewsAPI(APIBaseClass):
     def get_headlines(self) -> list:
         """
         Send a get request to the News API.
+        
         Returns:
             Returns a list containing todays headlines.
         """
