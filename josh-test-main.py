@@ -1,8 +1,8 @@
 import subprocess
 
-print("Installing Packages...")
+print("Attempting to install packages...")
 
-for package in {"spotipy", "rake-nltk"}:
+for package in {"requests", "spotipy", "rake-nltk"}:
     p = subprocess.call(f"pip install {package}", shell=True)
 
 from news_api import NewsAPI
@@ -11,7 +11,7 @@ from spotify_api import SpotifyAPI
 news = NewsAPI()
 spotify = SpotifyAPI(" ")
 
-keywords = news.get_keywords(1)
+keywords = news.get_keywords(2)
 
 print("\nKeywords:", keywords, end = 2 * "\n")
 
