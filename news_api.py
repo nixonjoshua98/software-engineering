@@ -1,48 +1,25 @@
-import requests # Import Requests library for HTTP GET requests
 import random
 
-from rake_nltk import Rake # Keyword extraction module
+from newsapi import NewsApiClient
+
+# Keyword extraction module
+from rake_nltk import Rake
 
 class NewsAPI:
-    URL = "https://newsapi.org/v2/top-headlines" # Target URl for the news API.
-
     ID = "2b6e854826644184a33debfa683e698a"
     
-    def __init__(self):
-        self.params = {"country": "gb", "apiKey": self.ID}
-
-        self.rake = Rake(max_length=1)
+    def __init__(self):       
+        self.newsapi = NewsApiClient(api_key=self.ID)
 
     # Private method
-    def __send_request(self):
-        """
-        Send a get request to the News API.
-        
-        Returns:
-            Returns the request object.
-        """
-                
-        request = requests.get(url=self.URL, params=self.params)
+    def __get_headlines(self, country: str, category: str) -> list:
+        top_headlines = self.newsapi.get_top_headlines(category=category,
+                                                       language="en",
+                                                       country=country)
+        # Return only yhe article titles
+        return [h["title"] for h in top_headlines["articles"]]
 
-        # Throw an error if the request was denied.
-        request.raise_for_status()
-
-        return request
-
-    # Private method
-    def __get_headlines(self):
-        """
-        Send a get request to the News API.
-        
-        Returns:
-            Returns a list containing todays headlines.
-        """
-
-        request = self.__send_request()
-
-        return [h["title"] for h in request.json()[u'articles']]
-
-    def get_keywords(self, numWords: int) -> list:
+    def get_keywords(self, numWords: int, country: str, category: str) -> list:
         """
         Extracts keywords from headlines
 
@@ -52,18 +29,20 @@ class NewsAPI:
         Returns:
             Returns a list of keywords based on the current headlines.
         """
-                
-        headlines = self.__get_headlines()
 
         words = []
+        rake = Rake(max_length=1)
 
-        # Extract the keywords using the Rake module.
+        headlines = self.__get_headlines(country, category)
+
         for h in headlines:
-            self.rake.extract_keywords_from_text(h)
+            rake.extract_keywords_from_text(h)
 
-            words.extend(self.rake.get_ranked_phrases())
+            # Add the list from rake to the words list
+            words.extend(rake.get_ranked_phrases())
 
-        random.shuffle(words) # Shuffle the list so the keywords will be randomised.
+        # Shuffle the list so the keywords will be randomised.
+        random.shuffle(words)
 
         return words[0:numWords]
 

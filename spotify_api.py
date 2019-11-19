@@ -31,6 +31,7 @@ class SpotifyAPI:
         self.username = username
         self.spotifyObject = None
 
+        # Set OS variables
         os.environ["SPOTIPY_CLIENT_ID"] = self.CLIENT_ID
         os.environ["SPOTIPY_CLIENT_SECRET"] = self.CLIENT_SECRET
         os.environ["SPOTIPY_REDIRECT_URI"] = self.URI
@@ -43,7 +44,7 @@ class SpotifyAPI:
     def __get_permission(self) -> str:
         try:
             token = util.prompt_for_user_token(self.username, self.SCOPE)
-            
+
         except (AttributeError, JSONDecodeError) as e:
             os.remove(f".cache-{self.username}")
 
@@ -53,13 +54,15 @@ class SpotifyAPI:
 
     # Private method
     def __create_object(self, token: str):
+        # Create the spotify API object - It can be re-used
         self.spotifyObject = spotipy.Spotify(auth=token)
 
     def search_for_tracks(self, words: list) -> list:
         results = self.spotifyObject.search(f"{','.join(words)}")
 
         tracks = []
-        
+
+        # Grab the data from the json
         for track in results["tracks"]["items"]:
             album_name = track["album"]["name"]
             track_name = track["name"]
