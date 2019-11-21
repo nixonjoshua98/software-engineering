@@ -13,6 +13,7 @@ class NewsAPI:
 
     # Private method
     def __get_headlines(self, country: str, category: str) -> list:
+        
         top_headlines = self.newsapi.get_top_headlines(category=category,
                                                        language="en",
                                                        country=country)

@@ -5,6 +5,12 @@ from tkinter import messagebox
 from news_api import NewsAPI
 from spotify_api import SpotifyAPI
 
+# Python 3.7.4
+
+# pip install newsapi-python
+# pip install spotipy
+# pip install rake-nltk
+
 class Application(tk.Tk):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
