@@ -1,24 +1,52 @@
-from api_base_class import APIBaseClass
+import random
 
-import requests # Import Requests library for HTTP GET requests
+from newsapi import NewsApiClient
 
-class NewsAPI(APIBaseClass):
-    """ Derived class which will interface with the News API """
-    def __init__(self, _id, secret=None):
-        super().__init__(_id, secret)  # Call the base class initiliser
-        self.URL = "https://newsapi.org/v2/top-headlines" # NewsAPI URL to fire a GET request to
-        self.PARAMS = {"country": "gb", "apiKey": "2b6e854826644184a33debfa683e698a"}
-    def get_headlines(self) -> list:
+# Keyword extraction module
+from rake_nltk import Rake
+
+class NewsAPI:
+    ID = "2b6e854826644184a33debfa683e698a"
+    
+    def __init__(self):       
+        self.newsapi = NewsApiClient(api_key=self.ID)
+
+    # Private method
+    def __get_headlines(self, country: str, category: str) -> list:
+        
+        top_headlines = self.newsapi.get_top_headlines(category=category,
+                                                       language="en",
+                                                       country=country)
+        # Return only yhe article titles
+        return [h["title"] for h in top_headlines["articles"]]
+
+    def get_keywords(self, numWords: int, country: str, category: str) -> list:
         """
-        Send a get request to the News API.
+        Extracts keywords from headlines
+
+        Params:
+            numWords <int>: maximum number of keywords which will be returned
+        
         Returns:
-            Returns a list containing todays headlines.
+            Returns a list of keywords based on the current headlines.
         """
-        request = requests.get(url = URL, params= PARAMS)
-        request.raise_for_status()
 
-        # Retrieve JSON data from the response and read the articles key in the dictionary response
-        ## Articles is a unicode array so python formats it as u'articles', without this u the key will not be found
-        articles = request.json()[u'articles']
-        # Articles is an array of news objects
-        return articles
+        words = []
+        rake = Rake(max_length=1)
+
+        headlines = self.__get_headlines(country, category)
+
+        for h in headlines:
+            rake.extract_keywords_from_text(h)
+
+            # Add the list from rake to the words list
+            words.extend(rake.get_ranked_phrases())
+
+        # Shuffle the list so the keywords will be randomised.
+        random.shuffle(words)
+
+        return words[0:numWords]
+
+        
+
+        
